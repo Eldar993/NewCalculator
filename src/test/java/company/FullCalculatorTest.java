@@ -40,7 +40,10 @@ class FullCalculatorTest {
                 Arguments.of("1e2", "100.00000"),
                 Arguments.of("2 * ( 3 + 1 )", "8.00000"),
                 Arguments.of("1.2 + 4.3", "5.50000"),
-                Arguments.of("5 / 3", "1.66667")
+                Arguments.of("5 / 3", "1.66667"),
+                Arguments.of("5 + unknown", "5.00000"),
+                Arguments.of("5 + unknown / 2", "5.00000"),
+                Arguments.of("( 5 + unknown ) / 2", "2.50000")
         );
     }
 

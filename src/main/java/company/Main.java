@@ -1,8 +1,10 @@
 package company;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static company.Token.Type.OPERATOR;
+import static company.Token.Type.VARIABLE;
 
 class Token {
     enum Type {
@@ -14,8 +16,11 @@ class Token {
         VARIABLE
     }
 
+    private static Pattern LETTERS = Pattern.compile("[a-zA-Z]+");
+
     private Type type;
     private double value;
+    private String name;
     private char operator;
     private int precedence;
 
@@ -24,6 +29,11 @@ class Token {
     }
 
     public Token(String contents) {
+        if (isVariable(contents)) {
+            type = VARIABLE;
+            name = contents;
+            return;
+        }
 
         switch (contents) {
             case "+":
@@ -79,6 +89,13 @@ class Token {
         return precedence;
     }
 
+    String getName() {
+        return name;
+    }
+
+    static boolean isVariable(String content) {
+        return LETTERS.matcher(content).matches();
+    }
 
     Token operate(double a, double b) {
         double result = 0;
@@ -218,6 +235,9 @@ class FullCalculator {
             Token nextToken = tokens[n];
             if (Token.Type.NUMBER.equals(nextToken.getType())) {
                 valueStack.push(nextToken);
+            } else if (VARIABLE.equals(nextToken.getType())) {
+                double value = getVariableValue(nextToken.getName());
+                valueStack.push(new Token(value));
             } else if (Token.Type.OPERATOR.equals(nextToken.getType())) {
                 if (operatorStack.isEmpty() || nextToken.getPrecedence() > operatorStack.top().getPrecedence()) {
                     operatorStack.push(nextToken);
@@ -264,6 +284,14 @@ class FullCalculator {
         } else {
             return new CalculationResult("ERROR", errorMessage);
         }
+    }
+
+    private double getVariableValue(String name) {
+        if (!variables.containsKey(name)) {
+            variables.put(name, 0.0);
+        }
+
+        return variables.get(name);
     }
 }
 
