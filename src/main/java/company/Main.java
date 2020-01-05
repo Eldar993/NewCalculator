@@ -2,24 +2,29 @@ package company;
 
 import java.util.*;
 
-class Token {
-    public static final int UNKNOWN = -1;
-    public static final int NUMBER = 0;
-    public static final int OPERATOR = 1;
-    public static final int LEFT_PARENTHESIS = 2;
-    public static final int RIGHT_PARENTHESIS = 3;
-    public static final int VARIABLE = 4;
+import static company.Token.Type.OPERATOR;
 
-    private int type;
+class Token {
+    enum Type {
+        UNKNOWN,
+        NUMBER,
+        OPERATOR,
+        LEFT_PARENTHESIS,
+        RIGHT_PARENTHESIS,
+        VARIABLE
+    }
+
+    private Type type;
     private double value;
     private char operator;
     private int precedence;
 
     public Token() {
-        type = UNKNOWN;
+        type = Type.UNKNOWN;
     }
 
     public Token(String contents) {
+
         switch (contents) {
             case "+":
                 type = OPERATOR;
@@ -42,27 +47,27 @@ class Token {
                 precedence = 2;
                 break;
             case "(":
-                type = LEFT_PARENTHESIS;
+                type = Type.LEFT_PARENTHESIS;
                 break;
             case ")":
-                type = RIGHT_PARENTHESIS;
+                type = Type.RIGHT_PARENTHESIS;
                 break;
             default:
-                type = NUMBER;
+                type = Type.NUMBER;
                 try {
                     value = Double.parseDouble(contents);
                 } catch (Exception ex) {
-                    type = UNKNOWN;
+                    type = Type.UNKNOWN;
                 }
         }
     }
 
     public Token(double x) {
-        type = NUMBER;
+        type = Type.NUMBER;
         value = x;
     }
 
-    int getType() {
+    Type getType() {
         return type;
     }
 
@@ -73,6 +78,7 @@ class Token {
     int getPrecedence() {
         return precedence;
     }
+
 
     Token operate(double a, double b) {
         double result = 0;
@@ -210,9 +216,9 @@ class FullCalculator {
         // Main loop - process all input tokens
         for (int n = 0; n < tokens.length; n++) {
             Token nextToken = tokens[n];
-            if (nextToken.getType() == Token.NUMBER) {
+            if (Token.Type.NUMBER.equals(nextToken.getType())) {
                 valueStack.push(nextToken);
-            } else if (nextToken.getType() == Token.OPERATOR) {
+            } else if (Token.Type.OPERATOR.equals(nextToken.getType())) {
                 if (operatorStack.isEmpty() || nextToken.getPrecedence() > operatorStack.top().getPrecedence()) {
                     operatorStack.push(nextToken);
                 } else {
@@ -223,15 +229,15 @@ class FullCalculator {
                     }
                     operatorStack.push(nextToken);
                 }
-            } else if (nextToken.getType() == Token.LEFT_PARENTHESIS) {
+            } else if (Token.Type.LEFT_PARENTHESIS.equals(nextToken.getType())) {
                 operatorStack.push(nextToken);
-            } else if (nextToken.getType() == Token.RIGHT_PARENTHESIS) {
-                while (!operatorStack.isEmpty() && operatorStack.top().getType() == Token.OPERATOR) {
+            } else if (Token.Type.RIGHT_PARENTHESIS.equals(nextToken.getType())) {
+                while (!operatorStack.isEmpty() && Token.Type.OPERATOR.equals(operatorStack.top().getType())) {
                     Token toProcess = operatorStack.top();
                     operatorStack.pop();
                     processOperator(toProcess);
                 }
-                if (!operatorStack.isEmpty() && operatorStack.top().getType() == Token.LEFT_PARENTHESIS) {
+                if (!operatorStack.isEmpty() && Token.Type.LEFT_PARENTHESIS.equals(operatorStack.top().getType())) {
                     operatorStack.pop();
                 } else {
                     errorMessage = "Missing parenthesis";
@@ -241,7 +247,7 @@ class FullCalculator {
 
         }
         // Empty out the operator stack at the end of the input
-        while (!operatorStack.isEmpty() && operatorStack.top().getType() == Token.OPERATOR) {
+        while (!operatorStack.isEmpty() && Token.Type.OPERATOR.equals(operatorStack.top().getType())) {
             Token toProcess = operatorStack.top();
             operatorStack.pop();
             processOperator(toProcess);
