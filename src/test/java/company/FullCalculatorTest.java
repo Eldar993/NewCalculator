@@ -119,7 +119,17 @@ class FullCalculatorTest {
                                 CalculationResult.error(),
                                 CalculationResult.success(3),
                                 CalculationResult.success(3),
-                                CalculationResult.success(3)))
+                                CalculationResult.success(3))),
+                Arguments.of(Arrays.asList(
+                        "x = 1 + 1",
+                        "3 + y",
+                        "x",
+                        "last"),
+                        Arrays.asList(
+                                CalculationResult.success(2),
+                                CalculationResult.success(3),
+                                CalculationResult.success(2),
+                                CalculationResult.success(2)))
         );
     }
 }

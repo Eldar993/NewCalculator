@@ -3,9 +3,6 @@ package company;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static company.Token.Type.OPERATOR;
-import static company.Token.Type.VARIABLE;
-
 class Token {
     enum Type {
         UNKNOWN,
@@ -30,29 +27,29 @@ class Token {
 
     public Token(String contents) {
         if (isVariable(contents)) {
-            type = VARIABLE;
+            type = Type.VARIABLE;
             name = contents;
             return;
         }
 
         switch (contents) {
             case "+":
-                type = OPERATOR;
+                type = Type.OPERATOR;
                 operator = contents.charAt(0);
                 precedence = 1;
                 break;
             case "-":
-                type = OPERATOR;
+                type = Type.OPERATOR;
                 operator = contents.charAt(0);
                 precedence = 1;
                 break;
             case "*":
-                type = OPERATOR;
+                type = Type.OPERATOR;
                 operator = contents.charAt(0);
                 precedence = 2;
                 break;
             case "/":
-                type = OPERATOR;
+                type = Type.OPERATOR;
                 operator = contents.charAt(0);
                 precedence = 2;
                 break;
@@ -252,6 +249,9 @@ class FullCalculator {
     //x =  1 + 1
     public CalculationResult processInput(String input) {
         init();
+        if (input == null || input.isBlank()) {
+            throw new IllegalArgumentException(input);
+        }
         int pos = input.indexOf("=");
         if (pos == -1) {
             CalculationResult result = calcExpression(input);
@@ -275,17 +275,20 @@ class FullCalculator {
     private CalculationResult calcExpression(String input) {
         // The tokens that make up the input
         String[] parts = input.split(" ");
-        Token[] tokens = new Token[parts.length];
+        List<Token> tokens = new ArrayList<>();
         for (int n = 0; n < parts.length; n++) {
-            tokens[n] = new Token(parts[n]);
+            if (parts[n].isBlank()) {
+                continue;
+            }
+            tokens.add(new Token(parts[n]));
         }
 
         // Main loop - process all input tokens
-        for (int n = 0; n < tokens.length; n++) {
-            Token nextToken = tokens[n];
+        for (int n = 0; n < tokens.size(); n++) {
+            Token nextToken = tokens.get(n);
             if (Token.Type.NUMBER.equals(nextToken.getType())) {
                 valueStack.push(nextToken);
-            } else if (VARIABLE.equals(nextToken.getType())) {
+            } else if (Token.Type.VARIABLE.equals(nextToken.getType())) {
                 double value = getVariableValue(nextToken.getName());
                 valueStack.push(new Token(value));
             } else if (Token.Type.OPERATOR.equals(nextToken.getType())) {
@@ -346,21 +349,32 @@ class FullCalculator {
 }
 
 public class Main {
+    private static Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
-        // The original input
-        System.out.print("Enter an expression to compute: ");
-        String userInput = input.nextLine();
 
         FullCalculator calc = new FullCalculator();
-        CalculationResult result = calc.processInput(userInput);
+        while (scanner.hasNextLine()) {
+            try {
+                doMethod(calc);
+            } catch (Exception e) {
+                System.out.println("ERROR");
+            }
+        }
+    }
+
+    private static void doMethod(FullCalculator calc) {
+        String input = scanner.nextLine().trim();
+        if (input.isEmpty()) {
+            return;
+        }
+
+        CalculationResult result = calc.processInput(input);
         if ("OK".equals(result.getResult())) {
             System.out.println(result.getMessage());
         } else {
             System.out.println(result.getResult());
-            System.out.println(result.getMessage());
+//            System.out.println(result.getMessage());
         }
     }
 }
-
-
