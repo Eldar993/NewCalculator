@@ -149,11 +149,30 @@ class TokenStack {
 class CalculationResult {
     private final String result;
     private final String message;
+    private final double value;
 
     CalculationResult(String result, String message) {
+        this(result, message, 0);
+    }
+
+    CalculationResult(String result, String message, double value) {
         this.result = result;
         this.message = message;
+        this.value = value;
     }
+
+    static CalculationResult success(double value) {
+        return new CalculationResult("OK", formatValue(value), value);
+    }
+
+    static CalculationResult error() {
+        return new CalculationResult("ERROR", "");
+    }
+
+    private static String formatValue(double value) {
+        return String.format("%.5f", value).replaceAll(",", ".");
+    }
+
 
     public String getResult() {
         return result;
@@ -161,6 +180,10 @@ class CalculationResult {
 
     public String getMessage() {
         return message;
+    }
+
+    public double getValue() {
+        return value;
     }
 
     @Override
@@ -181,6 +204,7 @@ class CalculationResult {
         return "CalculationResult{" +
                 "result='" + result + '\'' +
                 ", message='" + message + '\'' +
+                ", value='" + value + '\'' +
                 '}';
     }
 }
@@ -193,9 +217,12 @@ class FullCalculator {
     private Map<String, Double> variables = new HashMap<>();
 
     public FullCalculator() {
+        variables.put(LAST, 0.0);
+    }
+
+    private void init() {
         operatorStack = new TokenStack();
         valueStack = new TokenStack();
-        variables.put(LAST, 0.0);
     }
 
     private void processOperator(Token t) {
@@ -222,7 +249,30 @@ class FullCalculator {
         valueStack.push(R);
     }
 
+    //x =  1 + 1
     public CalculationResult processInput(String input) {
+        init();
+        int pos = input.indexOf("=");
+        if (pos == -1) {
+            CalculationResult result = calcExpression(input);
+            variables.put(LAST, result.getValue());
+            return result;
+        } else {
+            String[] parts = input.split("=");
+            parts[0] = parts[0].trim();
+            if (parts.length != 2) {
+                return new CalculationResult("ERROR", "unexpected '='");
+            } else if (!Token.isVariable(parts[0])) {
+                return new CalculationResult("ERROR", "Left side is not variable");
+            }
+            CalculationResult result = calcExpression(parts[1].trim());
+            variables.put(parts[0], result.getValue());
+            return result;
+        }
+    }
+
+
+    private CalculationResult calcExpression(String input) {
         // The tokens that make up the input
         String[] parts = input.split(" ");
         Token[] tokens = new Token[parts.length];
@@ -279,7 +329,7 @@ class FullCalculator {
             if (!operatorStack.isEmpty() || !valueStack.isEmpty()) {
                 return new CalculationResult("ERROR", "operatorStack or valueStack is not empty");
             } else {
-                return new CalculationResult("OK", String.format("%.5f", result.getValue()).replaceAll(",", "."));
+                return CalculationResult.success(result.getValue());
             }
         } else {
             return new CalculationResult("ERROR", errorMessage);

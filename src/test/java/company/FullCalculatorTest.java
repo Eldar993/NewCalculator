@@ -6,6 +6,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 class FullCalculatorTest {
@@ -48,7 +50,6 @@ class FullCalculatorTest {
     }
 
 
-
     @ParameterizedTest
     @MethodSource("withErrorMethodSource")
     void containsError(String input) {
@@ -65,7 +66,60 @@ class FullCalculatorTest {
 
     static Stream<Arguments> withErrorMethodSource() {
         return Stream.of(
-                Arguments.of("3 ** 5")
+                Arguments.of("3 ** 5"),
+                Arguments.of("z = 3 ** 5")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("multipleLinesSource")
+    void multipleLine(List<String> lines, List<CalculationResult> expectedResults) {
+
+        for (int i = 0; i < lines.size(); i++) {
+            //Given
+            CalculationResult expected = expectedResults.get(i);
+
+            //When
+            CalculationResult result = instance.processInput(lines.get(i));
+            System.out.println(result);
+
+            //Then
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(expected.getResult(), result.getResult());
+            if("OK".equals(expected.getResult())) {
+                Assertions.assertEquals(expected.getMessage(), result.getMessage());
+            }
+        }
+    }
+
+    static Stream<Arguments> multipleLinesSource() {
+        return Stream.of(
+                Arguments.of(Arrays.asList(
+                        "x = 1 + 1",
+                        "3 + x"),
+                        Arrays.asList(
+                                CalculationResult.success(2),
+                                CalculationResult.success(5))),
+                Arguments.of(Arrays.asList(
+                        "x = 1 + 1",
+                        "3 + y",
+                        "z = x + last",
+                        "x + y + z"),
+                        Arrays.asList(
+                                CalculationResult.success(2),
+                                CalculationResult.success(3),
+                                CalculationResult.success(5),
+                                CalculationResult.success(7))),
+                Arguments.of(Arrays.asList(
+                        "x = 1 ** 1",
+                        "3 + y",
+                        "z = x + last",
+                        "x + y + z"),
+                        Arrays.asList(
+                                CalculationResult.error(),
+                                CalculationResult.success(3),
+                                CalculationResult.success(3),
+                                CalculationResult.success(3)))
         );
     }
 }
