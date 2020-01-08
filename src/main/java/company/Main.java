@@ -220,6 +220,7 @@ class FullCalculator {
     private void init() {
         operatorStack = new TokenStack();
         valueStack = new TokenStack();
+        errorMessage = null;
     }
 
     private void processOperator(Token t) {
@@ -272,7 +273,21 @@ class FullCalculator {
     }
 
 
+    static String prepareLine(String line) {
+        String result = line.replaceAll("\\s*\\+\\s*", " + ");
+        result = result.replaceAll("\\s*-\\s*", " - ");
+        result = result.replaceAll("\\s*\\*\\s*", " * ");
+        result = result.replaceAll("\\s*/\\s*", " / ");
+        result = result.replaceAll("\\s*\\(\\s*", " ( ");
+        result = result.replaceAll("\\s*\\)\\s*", " ) ");
+        result = result.replaceAll("\\s*[eE]\\s*-\\s*", "e-");
+        result = result.replaceAll("\\s*[eE]\\s*\\+\\s*", "e+");
+
+        return result;
+    }
+
     private CalculationResult calcExpression(String input) {
+        input = prepareLine(input);
         // The tokens that make up the input
         String[] parts = input.split(" ");
         List<Token> tokens = new ArrayList<>();

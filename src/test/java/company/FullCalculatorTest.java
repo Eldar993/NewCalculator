@@ -36,6 +36,8 @@ class FullCalculatorTest {
     static Stream<Arguments> successResult() {
         return Stream.of(
                 Arguments.of("5 + 10", "15.00000"),
+                Arguments.of("5 +10", "15.00000"),
+                Arguments.of("3 + y", "3.00000"),
                 Arguments.of("5 + 1e2", "105.00000"),
                 Arguments.of("7 + 1e-3", "7.00100"),
                 Arguments.of("3 + 2", "5.00000"),
@@ -130,6 +132,23 @@ class FullCalculatorTest {
                                 CalculationResult.success(3),
                                 CalculationResult.success(2),
                                 CalculationResult.success(2)))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("prepareLineSource")
+    void prepareLine(String line, String expected) {
+        String result = FullCalculator.prepareLine(line);
+
+        Assertions.assertEquals(expected, result);
+    }
+
+    static Stream<Arguments> prepareLineSource() {
+        return Stream.of(
+                Arguments.of("7 + 1e-3", "7 + 1e-3"),
+                Arguments.of("7 + 1e+3", "7 + 1e+3"),
+                Arguments.of("7    +    1e-3", "7 + 1e-3"),
+                Arguments.of("7 +   1e   -3", "7 + 1e-3")
         );
     }
 }
